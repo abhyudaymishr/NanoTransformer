@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nanotransformer"
+version = "0.1.0"
+description = "Tiny causal language model (context_len=3) with training and evaluation tools."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = [
+  "torch>=2.0",
+  "tokenizers>=0.13",
+  "numpy>=1.23",
+  "tqdm>=4.64"
+]
+
+[project.scripts]
+nanotransformer-train = "nanotransformer.train:main"
+nanotransformer-eval = "nanotransformer.eval:main"
+nanotransformer-baseline = "nanotransformer.baseline_trigram:main"
+nanotransformer-latency = "nanotransformer.measure_latency:main"
+
+[tool.setuptools.packages.find]
+include = ["nanotransformer*"]

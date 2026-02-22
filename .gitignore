@@ -6,3 +6,7 @@ checkpoints/
 data/
 *.pt
 .DS_Store
+# Packaging
+build/
+dist/
+*.egg-info/

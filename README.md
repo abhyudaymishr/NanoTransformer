@@ -2,6 +2,19 @@
 
 Stage-wise implementation of a tiny causal LM (context_len=3, ~2.1M params).
 
+## PyPI install
+```bash
+pip install nanotransformer
+```
+
+CLI entry points (you supply a config JSON):
+```bash
+nanotransformer-train --config /path/to/config.json
+nanotransformer-eval --config /path/to/config.json --checkpoint /path/to/checkpoint.pt
+nanotransformer-baseline --config /path/to/config.json --k 0.1
+nanotransformer-latency --config /path/to/config.json --checkpoint /path/to/checkpoint.pt
+```
+
 ## Stage 1: Environment
 ```bash
 python -m venv venv
