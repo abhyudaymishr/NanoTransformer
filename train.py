@@ -40,6 +40,8 @@ def main():
     parser = argparse.ArgumentParser(description="Train NanoTransformer.")
     parser.add_argument("--config", default="configs/base.json")
     parser.add_argument("--device", default=None)
+    parser.add_argument("--log-interval", type=int, default=None)
+    parser.add_argument("--max-steps", type=int, default=None)
     args = parser.parse_args()
 
     cfg = load_config(args.config)
@@ -83,7 +85,11 @@ def main():
     print(f"Parameter count: {param_count}")
 
     optimizer = AdamW(model.parameters(), lr=cfg["lr"], weight_decay=cfg["weight_decay"])
+    log_interval = args.log_interval if args.log_interval is not None else cfg.get("log_interval", 0)
+    max_steps = args.max_steps if args.max_steps is not None else cfg.get("max_steps")
     total_steps = cfg["max_epochs"] * max(1, len(train_loader))
+    if max_steps is not None:
+        total_steps = min(total_steps, int(max_steps))
     scheduler = make_scheduler(optimizer, cfg["warmup_steps"], total_steps)
     criterion = nn.CrossEntropyLoss()
 
@@ -93,12 +99,16 @@ def main():
     best_val = float("inf")
     best_epoch = -1
     global_step = 0
+    stop_training = False
 
     for epoch in range(cfg["max_epochs"]):
         model.train()
         epoch_loss = 0.0
         total = 0
         start = time.time()
+        running_loss = 0.0
+        running_steps = 0
+        last_log = time.time()
         for x, y in train_loader:
             x = x.to(device)
             y = y.to(device)
@@ -115,6 +125,21 @@ def main():
             epoch_loss += loss.item() * x.size(0)
             total += x.size(0)
             global_step += 1
+            running_loss += loss.item()
+            running_steps += 1
+
+            if log_interval and global_step % log_interval == 0:
+                lr = optimizer.param_groups[0]["lr"]
+                elapsed = time.time() - last_log
+                avg_loss = running_loss / max(1, running_steps)
+                print(f"Step {global_step} | loss={avg_loss:.4f} | lr={lr:.2e} | {elapsed:.1f}s")
+                running_loss = 0.0
+                running_steps = 0
+                last_log = time.time()
+
+            if max_steps is not None and global_step >= max_steps:
+                stop_training = True
+                break
 
         train_loss = epoch_loss / max(1, total)
         val_loss = evaluate(model, val_loader, device, criterion)
@@ -136,6 +161,9 @@ def main():
                 "global_step": global_step
             }
             torch.save(ckpt, os.path.join(cfg["checkpoint_dir"], "best.pt"))
+
+        if stop_training:
+            break
 
     metrics = {
         "best_val_loss": best_val,

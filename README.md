@@ -6,7 +6,7 @@ Stage-wise implementation of a tiny causal LM (context_len=3, ~2.1M params).
 ```bash
 python -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+python scripts/install_deps.py
 ```
 
 ## Stage 2: Tokenizer and data
