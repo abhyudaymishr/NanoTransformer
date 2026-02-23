@@ -24,3 +24,6 @@ nanotransformer-latency = "nanotransformer.measure_latency:main"
 
 [tool.setuptools.packages.find]
 include = ["nanotransformer*"]
+
+[tool.setuptools]
+license-files = []
